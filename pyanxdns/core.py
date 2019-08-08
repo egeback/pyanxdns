@@ -30,6 +30,7 @@ class Method(Enum):
     GET = "get"
     PUT = "put"
     POST = "post"
+    DELETE = "delete"
 
     def __str__(self):
         return self.value
@@ -49,14 +50,10 @@ class API:
         
         api_url = api_url_base + query_string
 
-
-        data = json.dumps(data_json)
-
         response = None
 
         try:
-            print(api_url)
-            response = requests.request(str(method), api_url, headers=headers, json=data, allow_redirects=True)
+            response = requests.request(str(method), api_url, headers=headers, json=data_json, allow_redirects=True)
         except Exception as e:
             raise APIError(str(e))
 
@@ -65,7 +62,7 @@ class API:
 
         logger.debug(response.content)
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             return (json.loads(response.content))
         else:
             logger.error('[!] HTTP {0} calling [{1}]:{2}'.format(response.status_code, api_url, response.content))
@@ -77,7 +74,7 @@ class API:
             raise APIError(response.content)
 
     def get_all(self):
-        response = self._communicate(self, query_string='?domain={}'.format(self.domain))
+        response = self._communicate(query_string='?domain={}'.format(self.domain))
         return response['dnsRecords']
 
     def parse_by_name(self, all_records, name):
@@ -99,6 +96,12 @@ class API:
 
         return None
 
+    def parse_by_txt(self, all_records, txt, name=None):
+        if name is not None:
+            return [x for x in all_records if x['txtdata'] == txt and x['type'] == 'TXT' and x['name'] == 'name']
+        else:
+            return [x for x in all_records if x['txtdata'] == txt and x['type'] == 'TXT']
+
     def get_by_name(self, name):
         all_records = self.get_all()
         
@@ -108,6 +111,14 @@ class API:
         all_records = self.get_all()
         
         return self.parse_by_line(all_records, line)
+    
+    def get_by_txt(self, txt, name=None):
+        if name is not None:
+            records = self.get_by_name(name)
+        else:
+            records = self.get_all()
+        
+        return self.parse_by_txt(records, txt)
 
     def _create_json_data(self, type, name, address=None, ttl=3600, txtdata=None, line=None):
         data = {
@@ -131,7 +142,6 @@ class API:
 
     def add_txt_record(self, name, txtdata, ttl=3600):
         data = self._create_json_data(RecordType.TEXT, name, address="", ttl=ttl, txtdata=txtdata)
-        print(data)
 
         self._communicate(method=Method.POST, data_json=data)
 
@@ -145,7 +155,7 @@ class API:
 
         self._communicate(method=Method.POST, data_json=data)
 
-    def verify_or_get_line(self, line, name, type):
+    def verify_or_get_record(self, line, name, type=None):
         if line is not None:
             record = self.get_by_line(line)
             print(record)
@@ -157,47 +167,97 @@ class API:
                 raise APIError("0 records with that name.")
             elif len(records) > 1:
                 raise APIError(">1 record with that name. Specify line instead of name.")
-            print(records)
-            line = records[0]["line"]
+            record = records[0]
         else:
             raise APIError("Line or name needs to be provided")
-        
-        if record is not str(type):
+
+        if record is None:
+            raise APIError("No record found")
+
+        if type is not None and record["type"] != str(type):
             raise APIError("Record is not a {}.".format(type))
 
-        return line
+        return record
     
-    def update_txt_record(self, txt, name=None, ttl=3600, line=None):
+    def update_txt_record(self, txt, name=None, ttl=3600, line=None, find_txt=None):
         # Find line
-        line = self.verify_or_get_line(line, name, RecordType.TEXT)
+        if line is None and find_txt is not None:
+            records = self.get_by_txt(find_txt, name=name)
+            if len(records) == 0:
+                raise APIError("0 records with that name.")
+            elif len(records) > 1:
+                raise APIError(">1 record with that name. Specify line instead of name.")
+            record = records[0]
+        else:
+            record = self.verify_or_get_record(line, name, RecordType.TEXT)
+        
+        if record is None:
+            raise APIError("No record found")
 
-        data = self._create_json_data(RecordType.TEXT, name, txtdata=txt, ttl=ttl, line=line)
+        data = self._create_json_data(RecordType.TEXT, record["name"], txtdata=txt, ttl=ttl, line=record["line"])
 
         print(data)
+
+        self._communicate(method=Method.PUT, data_json=data)
     
     def update_a_record(self, address, name=None, ttl=3600, line=None):
         # Find line
-        line = self.verify_or_get_line(line, name, RecordType.A)
+        record = self.verify_or_get_record(line, name, RecordType.A)
 
-        data = self._create_json_data(RecordType.A, name=name, address=address, ttl=ttl, line=line)
+        data = self._create_json_data(RecordType.A, name=record["name"], address=address, ttl=ttl, line=record["line"])
 
         print(data)
+
+        self._communicate(method=Method.PUT, data_json=data)
     
     def update_cname_record(self, address, name=None, ttl=3600, line=None):
         # Find line
-        line = self.verify_or_get_line(line, name, RecordType.CNAME)
+        record = self.verify_or_get_record(line, name, RecordType.CNAME)
         
-        data = self._create_json_data(RecordType.CNAME, name=name, address=address, ttl=ttl, line=line)
+        data = self._create_json_data(RecordType.CNAME, name=record["name"], address=address, ttl=ttl, line=record["line"])
 
         print(data)
 
+        self._communicate(method=Method.PUT, data_json=data)
+
     def delete_line(self, line):
         # Find line
-        line = self.verify_or_get_line(line, None)
+        record = self.verify_or_get_record(line, None)
+
+        data = self._create_json_data(RecordType.CNAME, name=record["name"], line=record["line"])
+        del(data["name"])
+        del(data["type"])
+        del(data["ttl"])
+        print(data)
+        self._communicate(Method.DELETE, data_json=data)
+    
+    def delete_by_txt(self, txt, name=None):
+        # Find line
+        records = self.get_by_txt(txt, name=name)
+
+        if len(records) == 0:
+            raise APIError("0 records with that name.")
+        elif len(records) > 1:
+            raise APIError(">1 record with that name. Specify line instead of name.")
+        
+        record = records[0]
+
+        data = self._create_json_data(RecordType.CNAME, name=record["name"], line=record["line"])
+        del(data["name"])
+        del(data["type"])
+        del(data["ttl"])
+        self._communicate(Method.DELETE, data_json=data)
     
     def delete_by_name(self, name):
         # Find line
-        line = self.verify_or_get_line(None, name)
+        record = self.verify_or_get_record(None, name)
+
+        data = self._create_json_data(RecordType.CNAME, name=record["name"], line=record["line"])
+        del(data["name"])
+        del(data["type"])
+        del(data["ttl"])
+        
+        self._communicate(Method.DELETE, data_json=data)
 
 if __name__ == "__main__":
     pass

@@ -17,6 +17,7 @@ def add_extended_arguments(parser, key, domain):
 def add_get_parsers(subparsers, key, domain):
     parser_get = subparsers.add_parser('get', help='Get records', aliases=['g'])
     parser_get.add_argument('-n', '--name', required=False, help='Name parameter', default=None)
+    parser_get.add_argument('--txt', required=False, help='TXT parameter', default=None)
 
     add_base_arguments(parser_get, key, domain)
 
@@ -51,14 +52,15 @@ def add_update_parsers(subparsers, key, domain):
     parser_a = parser_record_type.add_parser('a', help='A record', aliases=["A"])
     parser_cname = parser_record_type.add_parser('cname', help='CNAME record', aliases=["CNAME"])
 
-    parser_txt.add_argument("-n", "--name", help='Record name')
-    parser_txt.add_argument("-r", "--line", help='Record line')
+    parser_txt.add_argument("-n", "--name", help='Filder by record name')
+    parser_txt.add_argument("--txt", help='Filter by record txt', dest="find_txt")
+    parser_txt.add_argument("-l", "--line", help='Record line')
     parser_txt.add_argument("txt", help='Record txt')
 
-    parser_a.add_argument("-r", "--line", help='Record line')
+    parser_a.add_argument("-l", "--line", help='Record line')
     parser_a.add_argument("-n", "--name", help='Record name')
     parser_a.add_argument("address", help='Record address')
-    parser_cname.add_argument("-r", "--line", help='Record line')
+    parser_cname.add_argument("-l", "--line", help='Record line')
     parser_cname.add_argument("-n", "--name", help='Record name')
     parser_cname.add_argument("address", help='Record address')
 
@@ -69,8 +71,14 @@ def add_update_parsers(subparsers, key, domain):
 
 def add_delete_parsers(subparsers, key, domain):
     parser_delete = subparsers.add_parser('delete', help='Delete record', aliases=['d', 'del'])
-    parser_delete.add_argument('-r', '--line', required=False, help='Line parameter', default=None)
+    parser_delete.add_argument('-l', '--line', required=False, help='Line parameter', default=None)
     parser_delete.add_argument('-n', '--name', required=False, help='Name parameter', default=None)
+    parser_delete.add_argument('--txt', required=False, help='TXT parameter', default=None)
+
+    parsers = [parser_delete]
+
+    for p in parsers:
+        add_base_arguments(p, key, domain)
 
 
 class CLI:
@@ -94,7 +102,7 @@ class CLI:
         verbose = args.verbose
         method = args.action
 
-        api = API(domain, api_key)
+        self.api = API(domain, api_key)
 
         try:
             if method not in ["get", "g", "add", "a", "update", "u", "delete", "del", "d"]:
@@ -123,50 +131,70 @@ class CLI:
                 "del": self.delete
             }
             
-            methods[method](api, args)
+            methods[method](args)
 
         except Exception as e:
             print(e)
 
         return 0
 
-    def get(self, api, args):
-            all_records = api.get_all()
+    def get(self, args):
+            all_records = self.api.get_all()
             if args.name is not None:
-                print(format_json(api.parse_by_name(all_records, args.name)))
+                if args.txt is not None:
+                    print(format_json(self.api.get_txt_record(all_records, args.txt, args.name)))
+                else:
+                    print(format_json(self.api.parse_by_name(all_records, args.name)))
+            elif args.txt is not None:
+                print(format_json(self.api.parse_by_txt(all_records, args.txt)))
             else:
-                print(format_json(all_records))
+                print(format_json(self.api.all_records))
 
-    def add(self, api, args):
+    def add(self, args):
         ttl = args.ttl if 'ttl' in args else 3600
         record_type = args.type
         
         method = {
-            "txt": partial(api.add_txt_record, args.name, args.txt if 'txt' in args else "", ttl=ttl),
-            "cname": partial(api.add_cname_record, args.name, args.address if 'address' in args else "", ttl=ttl),
-            "a": partial(api.add_a_record, args.name, args.address if 'address' in args else "", ttl=ttl)
+            "txt": partial(self.api.add_txt_record, args.name, args.txt if 'txt' in args else "", ttl=ttl),
+            "cname": partial(self.api.add_cname_record, args.name, args.address if 'address' in args else "", ttl=ttl),
+            "a": partial(self.api.add_a_record, args.name, args.address if 'address' in args else "", ttl=ttl)
         }
         
         print("add")
         method[record_type.lower()]()
     
-    def update(self, api, args):
+    def update(self, args):
         ttl = args.ttl if 'ttl' in args else 3600
         record_type = args.type
-        txt = args.name if 'txt' in args else None
+        txt = args.txt if 'txt' in args else None
+        find_txt = args.find_txt if 'find_txt' in args else None
         address = args.name if 'address' in args else None
         name = args.name if 'name' in args else None
         line = args.line if 'line' in args else None
         
         method = {
-            "txt": partial(api.update_txt_record, txt, name=name, ttl=ttl, line=line),
-            "cname": partial(api.update_cname_record, address, name=name, line=line, ttl=ttl),
-            "a": partial(api.update_a_record, address, name=name, line=line, ttl=ttl)
+            "txt": partial(self.api.update_txt_record, txt, name=name, ttl=ttl, line=line, find_txt=find_txt),
+            "cname": partial(self.api.update_cname_record, address, name=name, line=line, ttl=ttl),
+            "a": partial(self.api.update_a_record, address, name=name, line=line, ttl=ttl)
         }
 
         method[record_type.lower()]()
 
         print("update")
     
-    def delete(self, api, args):
+    def delete(self, args):
+        line = args.line if 'line' in args else None
+        name = args.name if 'name' in args else None
+        find_txt = args.txt if 'txt' in args else None
+
+        if line is not None:
+            self.api.delete_line(line)
+        elif name is not None:
+            if find_txt is not None:
+                self.api.delete_by_txt(find_txt, name=name)
+            else:
+                self.api.delete_by_name(name)
+        elif find_txt is not None:
+            self.api.delete_by_txt(find_txt, name=name)
+        
         print("delete")
