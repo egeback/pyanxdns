@@ -1,16 +1,4 @@
-#!/usr/local/opt/pyenv/versions/3.7.4/envs/venv374/bin/python3
-
-# -*- coding: utf-8 -*-
-import re
-import sys
-
-sys.path.insert(0,"../") # prefer local version
-sys.path.insert(0,"./") # prefer local version
-sys.path.append("../pyanxdns")
-sys.path.append("./pyanxdns")
-
-from pyanxdns.cli import CLI
-
-if __name__ == '__main__':
-    # sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(CLI().start())
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# echo "${DIR}/../pyanxdns/main.py" 
+python3 "${DIR}/../pyanxdns/main.py" "$@"

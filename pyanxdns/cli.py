@@ -142,13 +142,13 @@ class CLI:
             all_records = self.api.get_all()
             if args.name is not None:
                 if args.txt is not None:
-                    print(format_json(self.api.get_txt_record(all_records, args.txt, args.name)))
+                    print(format_json(self.api.parse_by_txt(all_records, args.txt, args.name)))
                 else:
                     print(format_json(self.api.parse_by_name(all_records, args.name)))
             elif args.txt is not None:
                 print(format_json(self.api.parse_by_txt(all_records, args.txt)))
             else:
-                print(format_json(self.api.all_records))
+                print(format_json(all_records))
 
     def add(self, args):
         ttl = args.ttl if 'ttl' in args else 3600
