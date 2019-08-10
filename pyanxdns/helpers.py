@@ -7,6 +7,8 @@ def format_json(data):
 from collections import namedtuple
 
 
+# Code by runfalk
+# https://github.com/runfalk/loopialib/blob/master/loopialib/utils.py
 DomainParts = namedtuple("SplitDomain", ["domain", "subdomain"])
 
 #: Lookup table for second level domains
