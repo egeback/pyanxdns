@@ -15,7 +15,6 @@ TODO:
 Changelog
 ---------
 ##### Version 0.1
------------
 Released 10nd August 2019
 
 - Initial release
