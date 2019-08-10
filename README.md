@@ -62,7 +62,7 @@ TODO
 
 Changelog
 ---------
-##### Version 0.1
+##### Version 0.2
 Released 10nd August 2019
 
 - Initial release
