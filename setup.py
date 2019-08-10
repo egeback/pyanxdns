@@ -10,7 +10,7 @@ setup(name='pyanxdns',
       author_email='marky@egeback.se',
       url='https://github.com/egeback/pyanxdns',
       packages=['pyanxdns'],
-      install_requires=[],
+      install_requires=['request'],
       classifiers=(
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",
