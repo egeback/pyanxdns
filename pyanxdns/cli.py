@@ -1,7 +1,7 @@
 import argparse
 import os
 from functools import partial
-from .core import API
+from .core import Client
 from .core import api_url_base
 from .helpers import format_json
 
@@ -102,7 +102,7 @@ class CLI:
         verbose = args.verbose
         method = args.action
 
-        self.api = API(domain, api_key)
+        self.client = Client(domain, api_key)
 
         try:
             if method not in ["get", "g", "add", "a", "update", "u", "delete", "del", "d"]:
@@ -139,14 +139,14 @@ class CLI:
         return 0
 
     def get(self, args):
-            all_records = self.api.get_all()
+            all_records = self.client.get_all()
             if args.name is not None:
                 if args.txt is not None:
-                    print(format_json(self.api.parse_by_txt(all_records, args.txt, args.name)))
+                    print(format_json(self.client.parse_by_txt(all_records, args.txt, args.name)))
                 else:
-                    print(format_json(self.api.parse_by_name(all_records, args.name)))
+                    print(format_json(self.client.parse_by_name(all_records, args.name)))
             elif args.txt is not None:
-                print(format_json(self.api.parse_by_txt(all_records, args.txt)))
+                print(format_json(self.client.parse_by_txt(all_records, args.txt)))
             else:
                 print(format_json(all_records))
 
@@ -155,9 +155,9 @@ class CLI:
         record_type = args.type
         
         method = {
-            "txt": partial(self.api.add_txt_record, args.name, args.txt if 'txt' in args else "", ttl=ttl),
-            "cname": partial(self.api.add_cname_record, args.name, args.address if 'address' in args else "", ttl=ttl),
-            "a": partial(self.api.add_a_record, args.name, args.address if 'address' in args else "", ttl=ttl)
+            "txt": partial(self.client.add_txt_record, args.name, args.txt if 'txt' in args else "", ttl=ttl),
+            "cname": partial(self.client.add_cname_record, args.name, args.address if 'address' in args else "", ttl=ttl),
+            "a": partial(self.client.add_a_record, args.name, args.address if 'address' in args else "", ttl=ttl)
         }
         
         print("add")
@@ -173,9 +173,9 @@ class CLI:
         line = args.line if 'line' in args else None
         
         method = {
-            "txt": partial(self.api.update_txt_record, txt, name=name, ttl=ttl, line=line, find_txt=find_txt),
-            "cname": partial(self.api.update_cname_record, address, name=name, line=line, ttl=ttl),
-            "a": partial(self.api.update_a_record, address, name=name, line=line, ttl=ttl)
+            "txt": partial(self.client.update_txt_record, txt, name=name, ttl=ttl, line=line, find_txt=find_txt),
+            "cname": partial(self.client.update_cname_record, address, name=name, line=line, ttl=ttl),
+            "a": partial(self.client.update_a_record, address, name=name, line=line, ttl=ttl)
         }
 
         method[record_type.lower()]()
@@ -188,13 +188,13 @@ class CLI:
         find_txt = args.txt if 'txt' in args else None
 
         if line is not None:
-            self.api.delete_line(line)
+            self.client.delete_line(line)
         elif name is not None:
             if find_txt is not None:
-                self.api.delete_by_txt(find_txt, name=name)
+                self.client.delete_by_txt(find_txt, name=name)
             else:
-                self.api.delete_by_name(name)
+                self.client.delete_by_name(name)
         elif find_txt is not None:
-            self.api.delete_by_txt(find_txt, name=name)
+            self.client.delete_by_txt(find_txt, name=name)
         
         print("delete")

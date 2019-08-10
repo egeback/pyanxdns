@@ -36,7 +36,7 @@ class Method(Enum):
         return self.value
 
 
-class API:
+class Client:
     def __init__(self, domain, apikey):
         self.domain = domain
         self.apikey = apikey
