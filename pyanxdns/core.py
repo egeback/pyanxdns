@@ -158,7 +158,6 @@ class Client:
     def verify_or_get_record(self, line, name, type=None):
         if line is not None:
             record = self.get_by_line(line)
-            print(record)
             if record is None:
                 raise APIError("0 records with provided line number.")
         elif name is not None:
@@ -196,8 +195,6 @@ class Client:
 
         data = self._create_json_data(RecordType.TEXT, record["name"], txtdata=txt, ttl=ttl, line=record["line"])
 
-        print(data)
-
         self._communicate(method=Method.PUT, data_json=data)
     
     def update_a_record(self, address, name=None, ttl=3600, line=None):
@@ -206,8 +203,6 @@ class Client:
 
         data = self._create_json_data(RecordType.A, name=record["name"], address=address, ttl=ttl, line=record["line"])
 
-        print(data)
-
         self._communicate(method=Method.PUT, data_json=data)
     
     def update_cname_record(self, address, name=None, ttl=3600, line=None):
@@ -215,8 +210,6 @@ class Client:
         record = self.verify_or_get_record(line, name, RecordType.CNAME)
         
         data = self._create_json_data(RecordType.CNAME, name=record["name"], address=address, ttl=ttl, line=record["line"])
-
-        print(data)
 
         self._communicate(method=Method.PUT, data_json=data)
 
@@ -228,7 +221,7 @@ class Client:
         del(data["name"])
         del(data["type"])
         del(data["ttl"])
-        print(data)
+        
         self._communicate(Method.DELETE, data_json=data)
     
     def delete_by_txt(self, txt, name=None):
