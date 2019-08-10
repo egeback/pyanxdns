@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-setup(name='ANX DNS client',
+setup(name='pyanxdns',
       version='0.1',
       description='Python client to communicate with ANX DNS API',
       author='Marky Egebäck',
