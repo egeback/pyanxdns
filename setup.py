@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(name='pyanxdns',
       version='0.1',
-      license='MIT'
+      license='MIT',
       description='Python client to communicate with ANX DNS API',
       author='Marky Egebäck',
       author_email='marky@egeback.se',
