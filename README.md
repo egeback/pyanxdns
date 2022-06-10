@@ -72,6 +72,10 @@ TODO
 
 Changelog
 ---------
+##### Version 0.2.5
+Released 10nd June 2022
+Corrected typo in setup.py for the requests package.
+
 ##### Version 0.2
 Released 10nd August 2019
 
