@@ -16,7 +16,7 @@ setup(name='pyanxdns',
       long_description_content_type="text/markdown",
       url='https://github.com/egeback/pyanxdns',
       packages=['pyanxdns'],
-      install_requires=['request'],
+      install_requires=['requests'],
       classifiers=(
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",
