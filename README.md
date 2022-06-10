@@ -5,7 +5,9 @@ This is an unofficial pythonic implementation of
 
 Important information
 ---------------------
-PLEASE DON'T USE EARLIER VERSIONS THEN 0.2.5 SINCE IT INCLUDED A BAD DEPENDENCY
+PLEASE DON'T USE EARLIER VERSIONS THEN 0.2.5 SINCE IT INCLUDED A BAD DEPENDENCY.
+
+This was included by mistake, unintentionally.
 
 Documentation
 -------------
