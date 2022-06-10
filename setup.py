@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pyanxdns',
-      version='0.2',
+      version='0.2.1',
       license='MIT',
       description='Python client to communicate with ANX DNS API',
       author='Marky Egebäck',
