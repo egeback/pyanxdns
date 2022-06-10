@@ -7,7 +7,11 @@ Important information
 ---------------------
 PLEASE DON'T USE EARLIER VERSIONS THEN 0.2.5 SINCE IT INCLUDED A BAD DEPENDENCY.
 
-This was included by mistake, unintentionally.
+[request](https://mp-weixin-qq-com.translate.goog/s/dkPdXfGfSK097GI6Ln92lA?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp) was used instead of requests. This was not used in the code but as a install_requires in setup.py. 
+
+PLEASE REMOVE EARLIER VERSIONS THAN 0.2.5.
+
+This was included by mistake, unintentionally. 
 
 Documentation
 -------------
