@@ -3,6 +3,10 @@ ANX API Client
 This is an unofficial pythonic implementation of
 [ANX's API](https://dyn.anx.se), described here [API documentation](http://dyn.anx.se/users/apidok.jsf)
 
+Important information
+---------------------
+PLEASE DON'T USE EARLIER VERSIONS THEN 0.2.1 SINCE IT INCLUDED A BAD DEPENDENCY
+
 Documentation
 -------------
 This is alpha state software, and I haven't bothered with documentation yet.
