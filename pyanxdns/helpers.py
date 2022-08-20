@@ -168,4 +168,4 @@ def split_domain(domain):
     )
 
 if __name__ == "__main__":
-    print(split_domain("internal.egeback.se").domain)
+    print(split_domain("internal.test.se").domain)
